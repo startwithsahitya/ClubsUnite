@@ -7,11 +7,7 @@ export default function ClubDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  if (status === "loading") return <p>Loading...</p>;
-  if (!session) {
-    router.push("/login");
-    return null;
-  }
+
 
   return (
     <main style={{ padding: "20px", textAlign: "center" }}>
