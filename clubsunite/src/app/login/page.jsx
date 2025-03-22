@@ -1,8 +1,6 @@
-// app/login/page.js
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./LoginPage.module.css";
@@ -10,21 +8,21 @@ import styles from "./LoginPage.module.css";
 export default function LoginPage() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
 
   const handleRoleSelection = (selectedRole) => {
+    if (isLoading) return;
     setRole(selectedRole);
     setError(null);
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     if (!id || !password || !role) {
-      setError("Please provide ID, password, and select a role");
+      setError("Please provide ID, password, and select a role.");
       return;
     }
 
@@ -32,23 +30,24 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await signIn("credentials", {
-        id,
-        password,
-        userType: role,
-        redirect: false,
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, password, role }),
       });
 
-      if (result?.error) {
-        setError("Invalid credentials");
-      } else {
-        router.push(
-          role === "student" ? "/dashboard/student" : "/dashboard/club"
-        );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed.");
       }
+
+      router.push(
+        role === "student" ? "/dashboard/student" : "/dashboard/club"
+      );
     } catch (err) {
       console.error("Login Error:", err);
-      setError("Something went wrong. Please try again.");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +57,7 @@ export default function LoginPage() {
     <main className={styles.pageContainer}>
       <div className={styles.imageContainer}>
         <Image
-          src="https://drive.google.com/uc?id=1EbCAvMXa3dGZJ0lWcx2FE9p_nwzYf0wX"
+          src="/logo.png"
           alt="Login Icon"
           width={197}
           height={54}
@@ -72,15 +71,19 @@ export default function LoginPage() {
         <div className={styles.buttonContainer}>
           <button
             className={`${styles.button} ${
-              role === "student" && styles.active
+              role === "student" ? styles.active : ""
             }`}
             onClick={() => handleRoleSelection("student")}
+            disabled={isLoading}
           >
             Student
           </button>
           <button
-            className={`${styles.button} ${role === "club" && styles.active}`}
+            className={`${styles.button} ${
+              role === "club" ? styles.active : ""
+            }`}
             onClick={() => handleRoleSelection("club")}
+            disabled={isLoading}
           >
             Club
           </button>
@@ -95,7 +98,7 @@ export default function LoginPage() {
         {role && (
           <form className={styles.inputContainer} onSubmit={handleLogin}>
             <label className={styles.label} htmlFor="id">
-              {role === "student" ? "Student ID" : "Club ID"}
+              {role === "student" ? "Registration No" : "Club ID"}
             </label>
             <input
               id="id"
@@ -103,7 +106,9 @@ export default function LoginPage() {
               type="text"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              placeholder={`Enter your ${role} ID`}
+              placeholder={`Enter your ${
+                role === "student" ? "Registration No" : "Club ID"
+              }`}
               required
             />
 

@@ -1,3 +1,4 @@
+// components/functions.jsx
 export const onButtonClick = (buttonId, setActionType, setRole) => {
   if (buttonId === 1) {
     setActionType("login");

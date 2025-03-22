@@ -1,19 +1,30 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function StudentDashboard() {
-  const session = await getServerSession(authOptions);
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-  if (!session || session.user.userType !== "student") {
-    redirect("/login");
+export default function StudentDashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  if (status === "loading") return <p>Loading...</p>;
+  if (!session) {
+    router.push("/login");
+    return null;
   }
 
   return (
-    <div>
+    <main style={{ padding: "20px", textAlign: "center" }}>
       <h1>Student Dashboard</h1>
-      <p>Welcome {session.user.name}</p>
-      <p>Registration No: {session.user.registrationNo}</p>
-    </div>
+      <p>
+        Welcome, <strong>{session.user.name}</strong>!
+      </p>
+      <p>
+        Your Registration No: <strong>{session.user.id}</strong>
+      </p>
+      <p>
+        Role: <strong>{session.user.role}</strong>
+      </p>
+    </main>
   );
 }

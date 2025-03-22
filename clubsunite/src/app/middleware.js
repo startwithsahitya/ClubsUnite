@@ -1,28 +1,19 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export async function middleware(request) {
-  const session = await auth();
-  const path = request.nextUrl.pathname;
+export async function middleware(req) {
+  // Get the token using the NextAuth secret (set NEXTAUTH_SECRET in .env.local)
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const { pathname } = req.nextUrl;
 
-  // Protected routes
-  const protectedRoutes = ["/dashboard/student", "/dashboard/club"];
-
-  // Redirect to login if accessing protected route without session
-  if (protectedRoutes.some((route) => path.startsWith(route)) && !session) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // Prevent role mismatch
-  if (
-    path.startsWith("/dashboard/student") &&
-    session?.user.userType !== "student"
-  ) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (path.startsWith("/dashboard/club") && session?.user.userType !== "club") {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // Check if the user is trying to access a dashboard route.
+  if (pathname.startsWith("/dashboard")) {
+    // If there's no valid token, redirect to login.
+    if (!token) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();
