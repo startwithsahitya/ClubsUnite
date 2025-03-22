@@ -37,7 +37,7 @@
 .title {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #2d2d2d;
   margin-bottom: 10px;
 }
 
@@ -51,19 +51,21 @@
   margin-bottom: 5px;
   font-size: 14px;
   font-weight: bold;
-  color: #555;
+  color: #020202;
 }
 
 /* Input styling */
 .input {
   width: 100%;
   border: none;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 2px solid #515151;
   outline: none;
   font-size: 16px;
   padding: 10px 0;
   margin-bottom: 20px;
   transition: border-bottom-color 0.3s ease;
+  /* Dark background */
+  color: #020202; /* Light text color */
 }
 
 .input:focus {
