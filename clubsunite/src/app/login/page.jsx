@@ -8,19 +8,19 @@ import styles from "./LoginPage.module.css";
 export default function LoginPage() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
 
   const handleRoleSelection = (selectedRole) => {
-    if (isLoading) return;
     setRole(selectedRole);
     setError(null);
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
+
     if (!id || !password || !role) {
       setError("Please provide ID, password, and select a role.");
       return;
@@ -29,35 +29,35 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, password, role }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed.");
-      }
-
+    // Hardcoded login for student and club
+    if (
+      (role === "student" && id === "REG2024001" && password === "pass1234") ||
+      (role === "club" &&
+        ["C01", "C02", "C03"].includes(id) &&
+        password === "pass1234")
+    ) {
+      const userData = {
+        id,
+        role,
+        name: role === "student" ? "Student User" : `Club ${id}`,
+      };
+      localStorage.setItem("user", JSON.stringify(userData)); // Store user data in localStorage
       router.push(
         role === "student" ? "/dashboard/student" : "/dashboard/club"
       );
-    } catch (err) {
-      console.error("Login Error:", err);
-      setError(err.message);
-    } finally {
       setIsLoading(false);
+      return;
     }
+
+    setError("Invalid credentials.");
+    setIsLoading(false);
   };
 
   return (
     <main className={styles.pageContainer}>
       <div className={styles.imageContainer}>
         <Image
-          src="/logo.png"
+          src="https://drive.google.com/uc?id=1EbCAvMXa3dGZJ0lWcx2FE9p_nwzYf0wX"
           alt="Login Icon"
           width={197}
           height={54}
@@ -74,7 +74,6 @@ export default function LoginPage() {
               role === "student" ? styles.active : ""
             }`}
             onClick={() => handleRoleSelection("student")}
-            disabled={isLoading}
           >
             Student
           </button>
@@ -83,7 +82,6 @@ export default function LoginPage() {
               role === "club" ? styles.active : ""
             }`}
             onClick={() => handleRoleSelection("club")}
-            disabled={isLoading}
           >
             Club
           </button>
@@ -98,7 +96,7 @@ export default function LoginPage() {
         {role && (
           <form className={styles.inputContainer} onSubmit={handleLogin}>
             <label className={styles.label} htmlFor="id">
-              {role === "student" ? "Registration No" : "Club ID"}
+              {role === "student" ? "Student ID" : "Club ID"}
             </label>
             <input
               id="id"
@@ -106,9 +104,7 @@ export default function LoginPage() {
               type="text"
               value={id}
               onChange={(e) => setId(e.target.value)}
-              placeholder={`Enter your ${
-                role === "student" ? "Registration No" : "Club ID"
-              }`}
+              placeholder={`Enter your ${role} ID`}
               required
             />
 
